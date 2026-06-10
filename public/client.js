@@ -1271,6 +1271,7 @@ function setupAdminTabs() {
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const target = tab.dataset.tab;
+      if (!target) return;
       
       tabs.forEach(t => t.classList.remove('active'));
       contents.forEach(c => c.classList.remove('active'));
@@ -1469,6 +1470,7 @@ function setupAdminTabs() {
   saTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const target = tab.dataset.tab;
+      if (!target) return;
       
       saTabs.forEach(t => t.classList.remove('active'));
       saContents.forEach(c => c.classList.remove('active'));

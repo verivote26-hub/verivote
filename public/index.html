@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeriVote - Multi-School Electronic Voting</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=17">
+</head>
+<body>
+
+  <!-- Background Glow Effects -->
+  <div class="glow-bg">
+    <div class="glow-sphere glow-blue"></div>
+    <div class="glow-sphere glow-purple"></div>
+  </div>
+
+  <!-- Header / Navigation -->
+  <header>
+    <div class="container nav-container">
+      <div class="logo" id="nav-logo">
+        <i class="fa-solid fa-check-to-slot"></i>
+        <span>Veri<span class="gradient-text">Vote</span></span>
+      </div>
+      <nav id="nav-actions">
+        <button class="btn btn-text" id="nav-home-btn"><i class="fa-solid fa-house"></i> Home</button>
+        <button class="btn btn-secondary" id="nav-admin-btn"><i class="fa-solid fa-user-shield"></i> Admin Panel</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <!-- 1. GATEWAY VIEW (ROLE SELECTION) -->
+    <section id="gateway-view" class="view-section active">
+      <div class="hero-container">
+        <h1>Secure & Transparent <br><span class="gradient-text">Voting Platform</span> for All Institutions</h1>
+        <p class="hero-desc">
+          VeriVote is a multi-tenant electronic voting system. School administrators can run secure, encrypted department and faculty elections. Students can easily authenticate and cast ballots.
+        </p>
+
+        <div class="action-cards mt-5">
+          <!-- Voter Entrance -->
+          <div class="portal-card glass" id="gateway-voter-card">
+            <div class="card-icon blue-icon">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <h2>Student Portal</h2>
+            <p>Access your school's active voting page, view running elections, and cast your secure ballot using your voter code.</p>
+            <button class="btn btn-primary btn-block" id="btn-gateway-voter">Access Voter Portal <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+
+          <!-- Admin Entrance -->
+          <div class="portal-card glass" id="gateway-admin-card">
+            <div class="card-icon purple-icon">
+              <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+            <h2>Administrator Portal</h2>
+            <p>Sign up as a new school administrator using a security ID invite, or log in to manage candidates and positions.</p>
+            <button class="btn btn-secondary btn-block" id="btn-gateway-admin">Enter Admin Panel <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. VOTER SCHOOL SEARCH VIEW -->
+    <section id="voter-school-view" class="view-section">
+      <div class="narrow-container glass form-container">
+        <div class="form-header">
+          <i class="fa-solid fa-school auth-icon"></i>
+          <h2>Find Your School</h2>
+          <p>Please select your institution from the registered directory below to access your active elections.</p>
+        </div>
+        
+        <div class="input-group">
+          <label for="voter-school-select"><i class="fa-solid fa-graduation-cap"></i> Select School / University</label>
+          <select id="voter-school-select" required>
+            <!-- Loaded dynamically in client.js -->
+          </select>
+        </div>
+        
+        <button class="btn btn-primary btn-block mt-3" id="btn-enter-school-portal">
+          Enter School Portal <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <button class="btn btn-text btn-block mt-3" id="btn-school-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      </div>
+    </section>
+
+    <!-- 3. SCHOOL LANDING VIEW -->
+    <section id="landing-view" class="view-section">
+      <div class="hero-container" style="max-width: 800px;">
+        <span class="badge" id="school-landing-badge">Institution Portal</span>
+        <h1 id="school-landing-title">School Name</h1>
+        <p class="hero-desc">Welcome to your institution's secure voting portal. Select an election from the listings below to vote or view results.</p>
+        
+        <!-- Elections List Container -->
+        <div id="landing-elections-list" class="mt-4" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+          <!-- Dynamically populated election cards (active / concluded) -->
+        </div>
+
+        <div class="text-center mt-5">
+          <button class="btn btn-text" id="btn-landing-back"><i class="fa-solid fa-rotate-left"></i> Switch Institutions</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. STUDENT AUTHENTICATION SECTION -->
+    <section id="voter-auth-view" class="view-section">
+      <div class="narrow-container glass form-container">
+        <div class="form-header">
+          <i class="fa-solid fa-lock-open auth-icon"></i>
+          <h2>Voter Verification</h2>
+          <p>Please enter the unique Voter ID code provided to you by your school administrator.</p>
+        </div>
+        
+        <div id="auth-election-info" class="election-mini-info" style="display: none;">
+          <h4 id="auth-election-title">Election Title</h4>
+          <span class="badge" id="auth-election-scope">School Wide</span>
+        </div>
+
+        <form id="voter-login-form">
+          <div class="input-group">
+            <label for="voter-id-input"><i class="fa-solid fa-ticket"></i> Voter ID Code</label>
+            <input type="text" id="voter-id-input" placeholder="e.g. VV-102-M5D" autocomplete="off" required>
+            <small class="input-help">Format: VV-XXX-XXX (Case-insensitive)</small>
+          </div>
+          <div id="auth-error-msg" class="error-msg" style="display: none;"></div>
+          <button type="submit" class="btn btn-primary btn-block" id="btn-verify-voter">
+            Verify & Proceed <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </form>
+        <button class="btn btn-text btn-block mt-3" id="btn-auth-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      </div>
+    </section>
+
+    <!-- 5. STUDENT BALLOT VIEW -->
+    <section id="voter-ballot-view" class="view-section">
+      <!-- Sticky Ballot Header -->
+      <div class="ballot-header-bar glass">
+        <div class="ballot-meta" style="display: flex; align-items: center; gap: 15px;">
+          <button class="btn btn-text" id="btn-ballot-back" style="padding: 6px 12px; margin-right: 5px;"><i class="fa-solid fa-arrow-left"></i> Back</button>
+          <div>
+            <h2 id="ballot-title" style="margin-bottom: 2px;">Active Election</h2>
+            <span class="badge scope-badge" id="ballot-scope">Departmental</span>
+          </div>
+        </div>
+        <div class="ballot-timer">
+          <span class="timer-label"><i class="fa-regular fa-clock"></i> TIME REMAINING</span>
+          <span id="ballot-countdown" class="timer-digits">00:00:00</span>
+        </div>
+      </div>
+
+      <!-- Voter Ballot Form -->
+      <form id="ballot-form" class="mt-4">
+        <!-- Dynamic Ballot Sections container -->
+        <div id="ballot-dynamic-sections">
+          <!-- Populated dynamically in client.js -->
+        </div>
+
+        <!-- Submit Panel -->
+        <div class="ballot-submit-panel glass mt-5">
+          <div class="submit-info">
+            <i class="fa-solid fa-circle-info"></i>
+            <p>Please review your selections. You must vote for one candidate per section, and it cannot be altered once submitted.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-large" id="btn-submit-ballot">Cast Secure Ballot <i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 6. VOTING SUCCESS & WAITING VIEW -->
+    <section id="voter-waiting-view" class="view-section">
+      <div class="narrow-container glass text-center padding-large">
+        <div class="success-ring">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <h2 class="mt-4">Ballot Cast Successfully!</h2>
+        <p class="waiting-subtitle">Your selections have been anonymized and securely saved on the database.</p>
+        
+        <div class="waiting-box glass mt-4">
+          <p><i class="fa-solid fa-hourglass-half animate-spin"></i> Waiting for election countdown to end...</p>
+          <div class="countdown-large" id="waiting-countdown">00:00:00</div>
+          <p class="small-muted">Results will automatically unlock and display the moment the timer hits zero.</p>
+        </div>
+
+        <div class="info-alert mt-4">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>To prevent tampering, vote tallies are locked. No client or administrator can access the counts until the countdown expires.</span>
+        </div>
+        <button class="btn btn-secondary mt-4" id="btn-waiting-logout"><i class="fa-solid fa-right-from-bracket"></i> Exit Portal</button>
+      </div>
+    </section>
+
+    <!-- 7. RESULTS VIEW -->
+    <section id="results-view" class="view-section">
+      <div class="results-container">
+        <!-- Results Header -->
+        <div class="results-header glass text-center">
+          <span class="results-pill"><i class="fa-solid fa-square-poll-vertical"></i> Election Completed</span>
+          <h1 id="results-election-title" class="mt-2">-</h1>
+          <p id="results-election-meta" class="lead-text">-</p>
+          
+          <!-- Turnout Stats -->
+          <div class="stats-row mt-4">
+            <div class="stat-card">
+              <span class="stat-num" id="stat-total-voters">0</span>
+              <span class="stat-label">Registered Voters</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num" id="stat-votes-cast">0</span>
+              <span class="stat-label">Votes Cast</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num" id="stat-turnout">0%</span>
+              <span class="stat-label">Voter Turnout</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Winners Podium -->
+        <div class="winners-podium mt-5" id="results-podium-dynamic">
+          <!-- Dynamically populated winner cards -->
+        </div>
+
+        <!-- Detailed Breakdown -->
+        <div class="results-breakdown-grid mt-5" id="results-breakdown-dynamic">
+          <!-- Dynamically populated breakdowns with CSS charts -->
+        </div>
+
+        <div class="text-center mt-5 mb-5">
+          <button class="btn btn-primary" id="btn-results-home"><i class="fa-solid fa-house"></i> Return to Homepage</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. ADMIN LOGIN/SIGNUP GATEWAY VIEW -->
+    <section id="admin-gate-view" class="view-section">
+      <div class="narrow-container glass form-container">
+        <!-- Tabs for Sign In vs Register vs Super Admin -->
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" id="btn-tab-login"><i class="fa-solid fa-lock"></i> Sign In</button>
+          <button class="auth-tab-btn" id="btn-tab-signup"><i class="fa-solid fa-user-plus"></i> Register</button>
+          <button class="auth-tab-btn" id="btn-tab-super"><i class="fa-solid fa-shield-halved"></i> Super Admin</button>
+        </div>
+
+        <!-- FORM: ADMIN LOGIN -->
+        <div id="admin-login-form-box">
+          <div class="form-header mt-3">
+            <i class="fa-solid fa-user-shield auth-icon" style="color: var(--color-blue); text-shadow: var(--shadow-blue);"></i>
+            <h2>School Admin Login</h2>
+            <p>Log in using your administrator name and personal password.</p>
+          </div>
+          
+          <form id="admin-login-form">
+            <div class="input-group">
+              <label for="admin-login-name"><i class="fa-solid fa-user"></i> Admin Username</label>
+              <input type="text" id="admin-login-name" placeholder="e.g. Dean Engineering" required>
+            </div>
+            <div class="input-group">
+              <label for="admin-login-password"><i class="fa-solid fa-lock"></i> Password</label>
+              <div class="password-wrapper">
+                <input type="password" id="admin-login-password" placeholder="••••••••" required>
+                <button type="button" class="btn-toggle-pw" data-target="admin-login-password" tabindex="-1" title="Show/hide password">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-block btn-auth-login mt-3">Sign In to Dashboard <i class="fa-solid fa-right-to-bracket"></i></button>
+          </form>
+        </div>
+
+        <!-- FORM: ADMIN REGISTER -->
+        <div id="admin-signup-form-box" style="display: none;">
+          <div class="form-header mt-3">
+            <i class="fa-solid fa-user-plus auth-icon" style="color: var(--color-purple); text-shadow: var(--shadow-purple);"></i>
+            <h2>Register School Admin</h2>
+            <p>Create a school administration account using an invite code generated by the Super Admin.</p>
+          </div>
+          
+          <form id="admin-signup-form">
+            <div class="input-group">
+              <label for="admin-signup-name"><i class="fa-solid fa-user"></i> Admin Username</label>
+              <input type="text" id="admin-signup-name" placeholder="e.g. Dr. Adeleke" required>
+            </div>
+            <div class="input-group">
+              <label for="admin-signup-school"><i class="fa-solid fa-school"></i> School / University Name</label>
+              <select id="admin-signup-school" required>
+                <!-- Loaded dynamically in client.js -->
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="admin-signup-code"><i class="fa-solid fa-ticket-simple"></i> Invitation Security ID</label>
+              <input type="text" id="admin-signup-code" placeholder="e.g. VV-INV-XXXXX" required>
+            </div>
+            <div class="input-group">
+              <label for="admin-signup-password"><i class="fa-solid fa-lock"></i> Create Password</label>
+              <div class="password-wrapper">
+                <input type="password" id="admin-signup-password" placeholder="•••••••• (Min 4 chars)" required>
+                <button type="button" class="btn-toggle-pw" data-target="admin-signup-password" tabindex="-1" title="Show/hide password">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-block btn-auth-register mt-3">Register Admin Account <i class="fa-solid fa-user-plus"></i></button>
+          </form>
+        </div>
+
+        <!-- FORM: SUPER ADMIN LOGIN -->
+        <div id="admin-super-form-box" style="display: none;">
+          <div class="form-header mt-3">
+            <i class="fa-solid fa-shield-halved auth-icon" style="color: var(--color-rose); text-shadow: var(--shadow-purple);"></i>
+            <h2>Super Admin Portal</h2>
+            <p>System owners can log in here using their master bypass username and security ID.</p>
+          </div>
+          
+          <form id="admin-super-form">
+            <div class="input-group">
+              <label for="admin-super-name"><i class="fa-solid fa-user-gear"></i> System Admin Username</label>
+              <input type="text" id="admin-super-name" placeholder="Enter System Admin Name" required>
+            </div>
+            <div class="input-group">
+              <label for="admin-super-code"><i class="fa-solid fa-key"></i> System Master Code</label>
+              <div class="password-wrapper">
+                <input type="password" id="admin-super-code" placeholder="••••••••••••" required>
+                <button type="button" class="btn-toggle-pw" data-target="admin-super-code" tabindex="-1" title="Show/hide password">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div class="info-alert mt-2 mb-3" style="background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.15);">
+              <i class="fa-solid fa-triangle-exclamation" style="color: var(--color-rose);"></i>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Notice: Use your designated master admin credentials to generate invitations for school managers. No signup required.</span>
+            </div>
+            <button type="submit" class="btn btn-danger btn-block mt-3" style="box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);">Access Super Admin Console <i class="fa-solid fa-shield-halved"></i></button>
+          </form>
+        </div>
+
+        <button class="btn btn-text btn-block mt-4" id="btn-admin-gate-back"><i class="fa-solid fa-arrow-left"></i> Back to Gateway</button>
+      </div>
+    </section>
+
+    <!-- 9. SUPER ADMIN DASHBOARD VIEW -->
+    <section id="super-admin-view" class="view-section">
+      <div class="admin-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar glass">
+          <div class="admin-brand">
+            <i class="fa-solid fa-shield-halved" style="color: var(--color-rose);"></i>
+            <span>Super Admin</span>
+          </div>
+          <ul class="admin-menu">
+            <li class="active" data-tab="tab-sa-overview"><i class="fa-solid fa-chart-line"></i> Overview</li>
+            <li data-tab="tab-sa-schools"><i class="fa-solid fa-school"></i> Schools</li>
+            <li data-tab="tab-sa-codes"><i class="fa-solid fa-key"></i> Invite Codes</li>
+            <li data-tab="tab-sa-danger" class="menu-danger"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</li>
+            <li id="btn-sa-logout" class="menu-danger" style="margin-top: 30px; border-top: 1px solid var(--border-glass); padding-top: 15px;"><i class="fa-solid fa-right-from-bracket"></i> Log Out</li>
+          </ul>
+        </aside>
+
+        <!-- Main Super Admin Content -->
+        <div class="admin-content glass">
+          
+          <!-- TAB: SYSTEM OVERVIEW -->
+          <div id="tab-sa-overview" class="admin-tab active">
+            <h2>System Overview</h2>
+            <p class="tab-desc">Monitor global statistics, institutions registry, active administrators, and live/past election states.</p>
+            
+            <!-- Global Stats Widget Row -->
+            <div class="stats-row mb-5" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;">
+              <div class="stat-card" style="border-left: 4px solid var(--color-blue); text-align: left;">
+                <span class="stat-num" id="sa-stat-schools">0</span>
+                <span class="stat-label">Registered Schools</span>
+              </div>
+              <div class="stat-card" style="border-left: 4px solid var(--color-purple); text-align: left;">
+                <span class="stat-num" id="sa-stat-admins">0</span>
+                <span class="stat-label">Total Admins</span>
+              </div>
+              <div class="stat-card" style="border-left: 4px solid var(--color-emerald); text-align: left;">
+                <span class="stat-num" id="sa-stat-elections">0</span>
+                <span class="stat-label">Total Elections</span>
+              </div>
+              <div class="stat-card" style="border-left: 4px solid var(--color-rose); text-align: left;">
+                <span class="stat-num" id="sa-stat-active-elections">0</span>
+                <span class="stat-label">Active Elections</span>
+              </div>
+              <div class="stat-card" style="border-left: 4px solid #fbbf24; text-align: left;">
+                <span class="stat-num" id="sa-stat-votes">0</span>
+                <span class="stat-label">Global Ballots Cast</span>
+              </div>
+            </div>
+
+            <!-- Grid Layout for Tables -->
+            <div style="display: grid; grid-template-columns: 1fr; gap: 40px;">
+              <!-- Active/Past Elections Monitor -->
+              <div>
+                <h3 class="mb-3"><i class="fa-solid fa-square-poll-vertical" style="color: var(--color-blue);"></i> Elections Monitor</h3>
+                <div class="candidates-table-container">
+                  <table class="admin-table-list">
+                    <thead>
+                      <tr>
+                        <th>School / Institution</th>
+                        <th>Election Title</th>
+                        <th>Scope</th>
+                        <th>Candidates</th>
+                        <th>Voter Turnout</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sa-overview-elections-tbody">
+                      <!-- Loaded dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Registered Institutions & Admins -->
+              <div>
+                <h3 class="mb-3"><i class="fa-solid fa-school" style="color: var(--color-purple);"></i> Registered Schools & Administrators</h3>
+                <div class="candidates-table-container">
+                  <table class="admin-table-list">
+                    <thead>
+                      <tr>
+                        <th>School Name</th>
+                        <th>Admin Name</th>
+                        <th>Signup Date</th>
+                        <th>Elections Created</th>
+                        <th style="text-align: right; width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sa-overview-schools-tbody">
+                      <!-- Loaded dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- TAB: SCHOOLS MANAGEMENT -->
+          <div id="tab-sa-schools" class="admin-tab">
+            <div class="flex-header">
+              <div>
+                <h2>Manage Registered Schools</h2>
+                <p class="tab-desc">Add or remove academic institutions authorized to use the platform. Admins will select from this pre-approved list during signup.</p>
+              </div>
+              <div class="candidate-form-box" style="padding: 0; background: transparent; border: none; box-shadow: none; display: block;">
+                <form id="sa-add-school-form" style="display: flex; gap: 15px; align-items: flex-end;">
+                  <div class="input-group" style="flex-grow: 1; margin-bottom: 0;">
+                    <label for="sa-school-name-input"><i class="fa-solid fa-school"></i> School Name</label>
+                    <input type="text" id="sa-school-name-input" placeholder="e.g. OAU" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary" style="height: 48px;"><i class="fa-solid fa-plus"></i> Add School</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="candidates-table-container mt-4">
+              <table class="admin-table-list">
+                <thead>
+                  <tr>
+                    <th>School Name</th>
+                    <th>Admins Registered</th>
+                    <th>Elections Created</th>
+                    <th style="text-align: right; width: 120px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="sa-schools-tbody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB: INVITE CODES -->
+          <div id="tab-sa-codes" class="admin-tab">
+            <div class="flex-header">
+              <div>
+                <h2>Admin Security IDs</h2>
+                <p class="tab-desc">Generate single-use Security IDs. School administrators must enter one of these codes to sign up and establish dashboards.</p>
+              </div>
+              <button class="btn btn-primary" id="btn-sa-generate-code"><i class="fa-solid fa-plus"></i> Generate invite Code</button>
+            </div>
+
+            <div class="candidates-table-container mt-4">
+              <table class="admin-table-list">
+                <thead>
+                  <tr>
+                    <th>Invitation Code</th>
+                    <th>Status</th>
+                    <th>Used By</th>
+                    <th>Used For School</th>
+                    <th>Created On</th>
+                  </tr>
+                </thead>
+                <tbody id="sa-codes-tbody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB: DANGER ZONE -->
+          <div id="tab-sa-danger" class="admin-tab">
+            <h2>Super Admin Danger Zone</h2>
+            <p class="tab-desc">Highly destructive operations. Wiping the platform database will delete ALL registered schools, admins, elections, and voter records.</p>
+            
+            <div class="danger-card mt-4">
+              <div class="danger-info">
+                <h3>Full System Wipe</h3>
+                <p>Delete all databases files and databases indexes. Clears everything back to original Veritas University demo settings.</p>
+              </div>
+              <button class="btn btn-danger" id="btn-sa-reset-system">Wipe Entire Platform <i class="fa-solid fa-circle-exclamation"></i></button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. SCHOOL ADMIN DASHBOARD VIEW -->
+    <section id="admin-view" class="view-section">
+      <div class="admin-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar glass">
+          <div class="admin-brand">
+            <i class="fa-solid fa-user-shield"></i>
+            <span id="admin-school-label">Admin Panel</span>
+          </div>
+          <ul class="admin-menu">
+            <li class="active" data-tab="tab-create-election"><i class="fa-solid fa-plus"></i> Create Election</li>
+            <li data-tab="tab-manage-candidates"><i class="fa-solid fa-user-plus"></i> Candidates</li>
+            <li data-tab="tab-manage-positions"><i class="fa-solid fa-tags"></i> Positions</li>
+            <li data-tab="tab-voter-codes"><i class="fa-solid fa-ticket"></i> Voter Codes</li>
+            <li data-tab="tab-danger-zone" class="menu-danger"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</li>
+            <li id="btn-admin-logout" class="menu-danger" style="margin-top: 30px; border-top: 1px solid var(--border-glass); padding-top: 15px;"><i class="fa-solid fa-right-from-bracket"></i> Log Out</li>
+          </ul>
+        </aside>
+
+        <!-- Main Admin Content Area -->
+        <div class="admin-content glass">
+          
+          <!-- TAB: CREATE ELECTION -->
+          <div id="tab-create-election" class="admin-tab active">
+            <h2>Create New Election</h2>
+            <p class="tab-desc">Configure the details of a new school, faculty, or department election. Starting a new election will automatically archive any current active election.</p>
+            
+            <!-- ACTIVE ELECTION LOCKOUT PANEL (shown when election is live) -->
+            <div id="election-active-lockout" style="display: none;" class="mt-4">
+              <div style="
+                background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.08));
+                border: 1px solid rgba(16,185,129,0.25);
+                border-radius: var(--radius-md);
+                padding: 36px 30px;
+                text-align: center;
+              ">
+                <div style="
+                  width: 72px; height: 72px;
+                  background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));
+                  border: 2px solid rgba(16,185,129,0.3);
+                  border-radius: 50%;
+                  display: flex; align-items: center; justify-content: center;
+                  margin: 0 auto 20px;
+                  font-size: 1.8rem;
+                  color: var(--color-emerald);
+                  animation: pulseGlow 2s ease-in-out infinite;
+                ">
+                  <i class="fa-solid fa-check-to-slot"></i>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: 20px; padding: 4px 14px; margin-bottom: 16px;">
+                  <span style="width: 8px; height: 8px; background: var(--color-emerald); border-radius: 50%; animation: pulseGlow 1s ease-in-out infinite;"></span>
+                  <span style="color: var(--color-emerald); font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Election Live</span>
+                </div>
+                <h3 id="lockout-election-title" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: #fff;">Election Title</h3>
+                <p id="lockout-election-scope" style="color: var(--text-secondary); margin-bottom: 24px;"></p>
+
+                <div style="
+                  background: rgba(0,0,0,0.2);
+                  border: 1px solid var(--border-glass);
+                  border-radius: var(--radius-sm);
+                  padding: 20px;
+                  display: inline-block;
+                  margin-bottom: 24px;
+                  min-width: 220px;
+                ">
+                  <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;"><i class="fa-regular fa-clock"></i> Time Remaining</p>
+                  <div id="lockout-countdown" style="font-size: 2.4rem; font-weight: 800; font-family: 'Courier New', monospace; background: linear-gradient(135deg, var(--color-emerald), var(--color-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: 4px;">00:00:00</div>
+                  <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 6px;">New elections are locked until this one concludes.</p>
+                </div>
+
+                <div class="info-alert" style="background: rgba(59,130,246,0.05); border-color: rgba(59,130,246,0.15); text-align: left; max-width: 480px; margin: 0 auto;">
+                  <i class="fa-solid fa-shield-halved" style="color: var(--color-blue);"></i>
+                  <span style="font-size: 0.85rem;">To prevent duplicate elections, the creation form will automatically unlock and reappear the moment this election's countdown expires.</span>
+                </div>
+              </div>
+            </div>
+
+            <form id="create-election-form" class="mt-4">
+              <div class="form-grid">
+                <div class="input-group">
+                  <label for="election-title-input"><i class="fa-solid fa-heading"></i> Election Title</label>
+                  <input type="text" id="election-title-input" placeholder="e.g. SUG President & Secretary Election" required>
+                </div>
+                
+                <div class="input-group">
+                  <label for="election-inst-input"><i class="fa-solid fa-school"></i> Institution / School Name</label>
+                  <input type="text" id="election-inst-input" placeholder="e.g. State Polytechnic" required readonly>
+                </div>
+
+                <div class="input-group">
+                  <label for="election-scope-select"><i class="fa-solid fa-layer-group"></i> Election Scope</label>
+                  <select id="election-scope-select">
+                    <option value="School-Wide">School-Wide (All students)</option>
+                    <option value="Faculty">Faculty Election</option>
+                    <option value="Department">Departmental Election</option>
+                  </select>
+                </div>
+
+                <div class="input-group" id="scope-name-container" style="display: none;">
+                  <label for="election-scope-name-input"><i class="fa-solid fa-tag"></i> Faculty / Department Name</label>
+                  <input type="text" id="election-scope-name-input" placeholder="e.g. Faculty of Science / Computer Science">
+                </div>
+
+                <div class="input-group">
+                  <label for="election-duration-input"><i class="fa-regular fa-clock"></i> Election Duration (Minutes)</label>
+                  <input type="number" id="election-duration-input" min="1" max="1440" value="5" required>
+                  <small class="input-help">For easy testing, 1 to 5 minutes is recommended.</small>
+                </div>
+
+                <div class="input-group span-2">
+                  <label><i class="fa-solid fa-gears"></i> Voter Code Generation Method</label>
+                  <div style="display: flex; gap: 24px; margin-top: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary); font-weight: 500;">
+                      <input type="radio" name="voter-code-method" value="random" checked> Randomly Generate Codes
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary); font-weight: 500;">
+                      <input type="radio" name="voter-code-method" value="list"> Upload/Paste Student Matric Numbers
+                    </label>
+                  </div>
+                </div>
+
+                <div class="input-group" id="method-random-container">
+                  <label for="election-voters-input"><i class="fa-solid fa-users"></i> Number of Voter IDs to Generate</label>
+                  <input type="number" id="election-voters-input" min="1" max="1000" value="10">
+                </div>
+
+                <div class="input-group span-2" id="method-list-container" style="display: none;">
+                  <label for="election-voters-list-input"><i class="fa-solid fa-file-import"></i> Student Matric Numbers (One per line) or Upload Spreadsheet</label>
+                  <textarea id="election-voters-list-input" rows="4" placeholder="e.g.&#10;EEE/2020/001&#10;EEE/2020/002&#10;EEE/2020/003" style="width: 100%; min-height: 120px; font-family: monospace;"></textarea>
+                  
+                  <div style="margin-top: 15px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">Or upload a spreadsheet file (.csv):</span>
+                    <label class="btn btn-secondary" style="margin: 0; cursor: pointer; padding: 8px 16px; font-size: 0.85rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass);">
+                      <i class="fa-solid fa-file-excel" style="color: var(--color-emerald); margin-right: 6px;"></i> Choose CSV File
+                      <input type="file" id="election-voters-csv-file" accept=".csv" style="display: none;">
+                    </label>
+                    <span id="csv-file-name" style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">No file chosen</span>
+                  </div>
+                  
+                  <small class="input-help" style="color: var(--text-muted); display: block; margin-top: 8px;">The spreadsheet should have a column named <strong>matric</strong>, <strong>matric_number</strong>, or <strong>id</strong>. Alternatively, the first column of the CSV will be parsed.</small>
+                </div>
+              </div>
+
+              <!-- Candidates selection list for creation -->
+              <div class="candidate-selections-container mt-4">
+                <h3>Select Candidates for this Election</h3>
+                <p class="small-muted">Tick the candidates who are running in this election. Candidates registry profiles must be created in the "Candidates" tab first.</p>
+                
+                <!-- Dynamic candidates selection grouped by position -->
+                <div id="admin-candidates-by-position-container" class="mt-3">
+                  <!-- Loaded dynamically in client.js -->
+                </div>
+              </div>
+
+              <div class="mt-5">
+                <button type="submit" class="btn btn-primary" id="btn-create-submit">Launch Election <i class="fa-solid fa-rocket"></i></button>
+              </div>
+            </form>
+          </div>
+
+
+          <!-- TAB: MANAGE CANDIDATES -->
+          <div id="tab-manage-candidates" class="admin-tab">
+            <div class="flex-header">
+              <div>
+                <h2>Candidate Registry</h2>
+                <p class="tab-desc">Register candidate profiles globally in your school's database registry. You can choose preset avatars or upload an image file.</p>
+              </div>
+              <button class="btn btn-primary" id="btn-toggle-add-candidate"><i class="fa-solid fa-plus"></i> Add New Candidate</button>
+            </div>
+
+            <!-- Add Candidate Form (Collapsible) -->
+            <div id="add-candidate-form-container" class="candidate-form-box mt-3" style="display: none;">
+              <form id="add-candidate-form">
+                <div class="form-grid">
+                  <div class="input-group">
+                    <label for="candidate-name-input"><i class="fa-solid fa-user"></i> Full Name</label>
+                    <input type="text" id="candidate-name-input" placeholder="e.g. Jonathan Doe" required>
+                  </div>
+                  
+                  <div class="input-group">
+                    <label for="candidate-role-select"><i class="fa-solid fa-briefcase"></i> Seeking Seat</label>
+                    <select id="candidate-role-select" required>
+                      <!-- Loaded dynamically from positions table -->
+                    </select>
+                  </div>
+
+                  <div class="input-group span-2">
+                    <label for="candidate-bio-input"><i class="fa-solid fa-feather"></i> Campaign Bio / Manifesto</label>
+                    <textarea id="candidate-bio-input" rows="2" placeholder="Briefly describe the candidate's goals..." required></textarea>
+                  </div>
+
+                  <div class="input-group">
+                    <label><i class="fa-solid fa-face-smile"></i> Candidate Avatar / Photo</label>
+                    <div class="avatar-selector">
+                      <label class="avatar-option">
+                        <input type="radio" name="candidate-avatar" value="avatar_alice" checked>
+                        <span class="avatar-preview preview-alice"></span>
+                      </label>
+                      <label class="avatar-option">
+                        <input type="radio" name="candidate-avatar" value="avatar_bob">
+                        <span class="avatar-preview preview-bob"></span>
+                      </label>
+                      <label class="avatar-option">
+                        <input type="radio" name="candidate-avatar" value="avatar_charlie">
+                        <span class="avatar-preview preview-charlie"></span>
+                      </label>
+                      <label class="avatar-option">
+                        <input type="radio" name="candidate-avatar" value="avatar_diana">
+                        <span class="avatar-preview preview-diana"></span>
+                      </label>
+                      <label class="avatar-option file-upload-option">
+                        <input type="radio" name="candidate-avatar" value="custom" id="custom-avatar-radio">
+                        <span class="avatar-preview preview-custom"><i class="fa-solid fa-camera"></i></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="input-group" id="avatar-file-group" style="display: none;">
+                    <label for="candidate-image-file"><i class="fa-solid fa-upload"></i> Upload Image File</label>
+                    <input type="file" id="candidate-image-file" accept="image/*">
+                  </div>
+                </div>
+
+                <div class="form-actions mt-3">
+                  <button type="submit" class="btn btn-primary">Save Candidate</button>
+                  <button type="button" class="btn btn-text" id="btn-cancel-candidate">Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Candidate List Display -->
+            <div class="candidates-table-container mt-4">
+              <table class="admin-table-list">
+                <thead>
+                  <tr>
+                    <th>Photo</th>
+                    <th>Name</th>
+                    <th>Role / Seat</th>
+                    <th>Manifesto</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="candidates-admin-tbody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB: MANAGE POSITIONS -->
+          <div id="tab-manage-positions" class="admin-tab">
+            <h2>Manage Voting Positions</h2>
+            <p class="tab-desc">Add or remove roles (seats) for elections depending on your school needs (e.g., President, Vice President, Secretary, PRO, Treasurer).</p>
+            
+            <div class="candidate-form-box">
+              <form id="add-position-form" style="display: flex; gap: 15px; align-items: flex-end;">
+                <div class="input-group" style="flex-grow: 1; margin-bottom: 0;">
+                  <label for="position-name-input"><i class="fa-solid fa-tag"></i> Position Name</label>
+                  <input type="text" id="position-name-input" placeholder="e.g. Treasurer" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="height: 48px;"><i class="fa-solid fa-plus"></i> Add Position</button>
+              </form>
+            </div>
+
+            <div class="candidates-table-container mt-4">
+              <table class="admin-table-list">
+                <thead>
+                  <tr>
+                    <th>Position Name</th>
+                    <th style="text-align: right; width: 120px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="positions-admin-tbody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB: VOTER CODES -->
+          <div id="tab-voter-codes" class="admin-tab">
+            <div class="flex-header">
+              <div>
+                <h2>Generated Voter ID Codes</h2>
+                <p class="tab-desc">Copy and distribute these secure Voter IDs to authorized voters. Each code is one-time use and case-insensitive.</p>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" id="btn-copy-all-voters"><i class="fa-solid fa-copy"></i> Copy Unused Codes</button>
+                <button class="btn btn-primary" id="btn-copy-mapping" style="display: none;"><i class="fa-solid fa-file-arrow-down"></i> Download CSV</button>
+              </div>
+            </div>
+
+            <!-- Table format for list-based generation -->
+            <div class="candidates-table-container mt-4" id="voters-table-container" style="display: none;">
+              <table class="admin-table-list">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Student Name</th>
+                    <th>Matric Number</th>
+                    <th>Voter Code</th>
+                    <th style="width: 130px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="voters-admin-tbody">
+                  <!-- Loaded dynamically in client.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Grid/Tag format for random generation -->
+            <div class="voters-list-grid mt-4" id="voters-admin-grid">
+              <!-- Dynamically populated voter tags -->
+            </div>
+          </div>
+
+          <!-- TAB: DANGER ZONE -->
+          <div id="tab-danger-zone" class="admin-tab">
+            <h2>Danger Zone</h2>
+            <p class="tab-desc">These actions will permanently wipe your school's database tables. Proceed with caution.</p>
+            
+            <div class="danger-card mt-4">
+              <div class="danger-info">
+                <h3>Reset School Records</h3>
+                <p>This will delete all past and active elections, global candidates, generated voter codes, positions list, and vote records for your school. Other institutions' data will not be affected.</p>
+              </div>
+              <button class="btn btn-danger" id="btn-reset-system">Reset School Data <i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Confirm Vote Modal -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal glass">
+      <div class="modal-icon"><i class="fa-solid fa-circle-question"></i></div>
+      <h2>Confirm Your Ballot</h2>
+      <p>You are about to cast your vote for:</p>
+      
+      <!-- Dynamic modal summary -->
+      <div class="modal-summary" id="modal-summary-list">
+        <!-- Dynamically populated summary items -->
+      </div>
+      
+      <p class="warning-text"><i class="fa-solid fa-triangle-exclamation"></i> You cannot change or reuse your Voter ID after casting this ballot.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btn-confirm-vote-yes">Yes, Submit Ballot <i class="fa-solid fa-check"></i></button>
+        <button class="btn btn-secondary" id="btn-confirm-vote-no">Go Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Professional Footer -->
+  <footer>
+    <div class="container footer-container">
+      <div class="footer-brand">
+        <div class="logo" style="cursor: default;">
+          <i class="fa-solid fa-check-to-slot"></i>
+          <span>Veri<span class="gradient-text">Vote</span></span>
+        </div>
+        <p class="footer-tagline">Secure, transparent, and immutable decentralized electronic voting for academic institutions worldwide.</p>
+      </div>
+      
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <a href="#" id="foot-home-link">Home Gateway</a>
+          <a href="#" id="foot-admin-link">Administrator Portal</a>
+        </div>
+        <div class="footer-col">
+          <h4>Security</h4>
+          <span><i class="fa-solid fa-shield-halved"></i> AES-256 Encrypted</span>
+          <span><i class="fa-solid fa-database"></i> SQLite ACID Transactions</span>
+          <span><i class="fa-solid fa-lock"></i> Result-Locked Countdown</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container footer-bottom-container">
+        <span>&copy; 2026 VeriVote System Inc. All institutional rights reserved.</span>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-github"></i></a>
+          <a href="#"><i class="fa-brands fa-twitter"></i></a>
+          <a href="#"><i class="fa-solid fa-envelope"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast">
+    <span id="toast-icon"></span>
+    <span id="toast-message">Notification message</span>
+  </div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Client JavaScript -->
+  <script src="client.js?v=17"></script>
+</body>
+</html>

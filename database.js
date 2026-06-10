@@ -290,6 +290,8 @@ async function initDatabase() {
       console.log('Seeded Veritas University demo school admin, invite code, and positions.');
     }
 
+
+
     // Seed default pre-approved schools
     const nowTime = Date.now();
     await run("INSERT OR IGNORE INTO registered_schools (name, created_at) VALUES ('Veritas University', ?)", [nowTime]);

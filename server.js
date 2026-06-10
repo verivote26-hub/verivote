@@ -987,6 +987,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+
+
 // Start listening
 app.listen(PORT, () => {
   console.log(`VeriVote server is running securely at http://localhost:${PORT}`);

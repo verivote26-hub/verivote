@@ -2414,9 +2414,9 @@ function initApp() {
     showToast('School Administrator logged out.', 'info');
   });
 
-  // Mobile Admin Sidebar Toggle
+  // Mobile Admin Sidebar Toggle (School Admin Panel)
   const adminMenuToggle = document.getElementById('admin-menu-toggle');
-  const adminMenu = document.querySelector('.admin-menu');
+  const adminMenu = document.querySelector('#admin-view .admin-menu');
   if (adminMenuToggle && adminMenu) {
     adminMenuToggle.addEventListener('click', () => {
       adminMenu.classList.toggle('active');
@@ -2426,6 +2426,22 @@ function initApp() {
     adminMenu.querySelectorAll('li').forEach(item => {
       item.addEventListener('click', () => {
         adminMenu.classList.remove('active');
+      });
+    });
+  }
+
+  // Mobile Super Admin Sidebar Toggle
+  const saMenuToggle = document.getElementById('sa-menu-toggle');
+  const saMenu = document.querySelector('#super-admin-view .admin-menu');
+  if (saMenuToggle && saMenu) {
+    saMenuToggle.addEventListener('click', () => {
+      saMenu.classList.toggle('active');
+    });
+
+    // Close menu when clicking any menu item
+    saMenu.querySelectorAll('li').forEach(item => {
+      item.addEventListener('click', () => {
+        saMenu.classList.remove('active');
       });
     });
   }

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: verivote
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DATABASE_PATH
+        value: /data/verivote.db
+    disk:
+      name: verivote-db-disk
+      mountPath: /data
+      sizeGB: 1

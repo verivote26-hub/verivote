@@ -12,7 +12,8 @@ const state = {
   serverTimeOffset: 0,
   candidatesList: [], // Active candidates in election
   positions: [],      // Dynamic list of positions for selected school
-  allRegisteredCandidates: [] // Global candidate registry for selected school
+  allRegisteredCandidates: [], // Global candidate registry for selected school
+  resultsElectionId: null
 };
 
 // DOM Views & Navigation
@@ -51,6 +52,7 @@ function switchView(viewId) {
     }
   });
   state.currentView = viewId;
+  sessionStorage.setItem('currentView', viewId);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Clean selections when leaving ballot
@@ -160,6 +162,7 @@ async function enterSchoolPortal() {
   }
   
   state.selectedSchool = school;
+  sessionStorage.setItem('selectedSchool', school);
   
   // Update Portal view titles
   document.getElementById('school-landing-title').innerText = school;
@@ -251,6 +254,7 @@ async function loadSchoolElections() {
         
         document.getElementById(`btn-vote-${e.id}`).addEventListener('click', () => {
           state.activeElection = e;
+          sessionStorage.setItem('activeElection', JSON.stringify(e));
           const miniInfo = document.getElementById('auth-election-info');
           document.getElementById('auth-election-title').innerText = e.title;
           document.getElementById('auth-election-scope').innerText = e.scope;
@@ -320,6 +324,7 @@ async function handleVoterAuthSubmit(e) {
     
     if (res.ok && data.valid) {
       state.voterCode = code;
+      sessionStorage.setItem('voterCode', code);
       authError.style.display = 'none';
       voterIdInput.value = '';
       showToast('Authentication Successful!', 'success');
@@ -526,11 +531,15 @@ function loadWaitingScreen() {
 // ==========================================
 
 async function loadResults(electionId) {
+  state.resultsElectionId = electionId;
+  sessionStorage.setItem('resultsElectionId', electionId);
   try {
     const res = await fetch(`/api/election/${electionId}/results`);
     
     if (res.status === 403) {
       showToast('Results are locked until voting ends.', 'error');
+      state.resultsElectionId = null;
+      sessionStorage.removeItem('resultsElectionId');
       switchView('landing-view');
       return;
     }
@@ -538,6 +547,8 @@ async function loadResults(electionId) {
     const data = await res.json();
     if (!res.ok || !data.success) {
       showToast('Failed to load election results.', 'error');
+      state.resultsElectionId = null;
+      sessionStorage.removeItem('resultsElectionId');
       switchView('landing-view');
       return;
     }
@@ -729,6 +740,8 @@ async function handleAdminLogin(e) {
   if (name === 'SUPERADMIN' && password === 'SUPERADMIN') {
     showToast('Super Admin authenticated!', 'success');
     document.getElementById('admin-login-form').reset();
+    state.adminUser = { name: 'SUPERADMIN', isSuperAdmin: true };
+    sessionStorage.setItem('adminUser', JSON.stringify(state.adminUser));
     enterSuperAdminPortal();
     return;
   }
@@ -744,6 +757,8 @@ async function handleAdminLogin(e) {
     if (res.ok && data.success) {
       state.adminUser = { name: data.name, school: data.school };
       state.selectedSchool = data.school;
+      sessionStorage.setItem('adminUser', JSON.stringify(state.adminUser));
+      sessionStorage.setItem('selectedSchool', state.selectedSchool);
       
       showToast(`Welcome back, Admin of ${data.school}!`, 'success');
       document.getElementById('admin-login-form').reset();
@@ -765,6 +780,8 @@ async function handleSuperAdminLogin(e) {
   if (name === 'SUPERADMIN' && inviteCode === 'SUPERADMIN') {
     showToast('Super Admin authenticated!', 'success');
     document.getElementById('admin-super-form').reset();
+    state.adminUser = { name: 'SUPERADMIN', isSuperAdmin: true };
+    sessionStorage.setItem('adminUser', JSON.stringify(state.adminUser));
     enterSuperAdminPortal();
   } else {
     showToast('Invalid Super Admin credentials.', 'error');
@@ -772,15 +789,21 @@ async function handleSuperAdminLogin(e) {
 }
 
 // Switch to School Admin Panel
-function enterSchoolAdminDashboard() {
+function enterSchoolAdminDashboard(savedTab) {
   document.getElementById('admin-school-label').innerText = state.adminUser.school;
 
   // Always start with a fresh form on login
   resetElectionCreationPage();
   
-  // Reset active admin tabs back to default
-  const defaultTab = document.querySelector('#admin-view [data-tab="tab-create-election"]');
-  if (defaultTab) defaultTab.click();
+  // Reset active admin tabs back to default or saved tab
+  const tabToClick = savedTab || 'tab-create-election';
+  const defaultTab = document.querySelector(`#admin-view [data-tab="${tabToClick}"]`);
+  if (defaultTab) {
+    defaultTab.click();
+  } else {
+    const backupTab = document.querySelector('#admin-view [data-tab="tab-create-election"]');
+    if (backupTab) backupTab.click();
+  }
   
   switchView('admin-view');
   
@@ -938,13 +961,19 @@ function resetElectionCreationPage() {
 // SUPER ADMIN DASHBOARD
 // ==========================================
 
-function enterSuperAdminPortal() {
+function enterSuperAdminPortal(savedTab) {
   // Load Super Admin overview metrics
   loadSuperAdminOverview();
   
-  // Reset active super admin tabs back to default
-  const defaultTab = document.querySelector('#super-admin-view [data-tab="tab-sa-overview"]');
-  if (defaultTab) defaultTab.click();
+  // Reset active super admin tabs back to default or saved tab
+  const tabToClick = savedTab || 'tab-sa-overview';
+  const defaultTab = document.querySelector(`#super-admin-view [data-tab="${tabToClick}"]`);
+  if (defaultTab) {
+    defaultTab.click();
+  } else {
+    const backupTab = document.querySelector('#super-admin-view [data-tab="tab-sa-overview"]');
+    if (backupTab) backupTab.click();
+  }
   
   switchView('super-admin-view');
 }
@@ -1249,6 +1278,10 @@ function setupAdminTabs() {
       tab.classList.add('active');
       document.getElementById(target).classList.add('active');
       
+      if (state.adminUser && !state.adminUser.isSuperAdmin) {
+        sessionStorage.setItem('currentAdminTab', target);
+      }
+      
       if (target === 'tab-manage-candidates') {
         loadAllRegisteredCandidates();
         loadPositionsList();
@@ -1442,6 +1475,10 @@ function setupAdminTabs() {
       
       tab.classList.add('active');
       document.getElementById(target).classList.add('active');
+      
+      if (state.adminUser && state.adminUser.isSuperAdmin) {
+        sessionStorage.setItem('currentSuperAdminTab', target);
+      }
       
       if (target === 'tab-sa-codes') {
         loadSuperAdminCodes();
@@ -2084,6 +2121,7 @@ async function resetEntireSystem() {
       if (state.countdownInterval) clearInterval(state.countdownInterval);
       state.countdownInterval = null;
       state.activeElection = null;
+      sessionStorage.removeItem('activeElection');
       
       switchView('landing-view');
       loadSchoolElections();
@@ -2243,6 +2281,7 @@ function initApp() {
     state.countdownInterval = null;
     state.selectedSchool = '';
     state.adminUser = null;
+    sessionStorage.clear();
     switchView('gateway-view');
   });
 
@@ -2273,6 +2312,7 @@ function initApp() {
     if (state.countdownInterval) clearInterval(state.countdownInterval);
     state.countdownInterval = null;
     state.selectedSchool = '';
+    sessionStorage.removeItem('selectedSchool');
     loadSchoolsList();
     switchView('voter-school-view');
   });
@@ -2293,12 +2333,21 @@ function initApp() {
   // Waiting screen logout
   document.getElementById('btn-waiting-logout').addEventListener('click', () => {
     state.voterCode = '';
+    state.activeElection = null;
+    sessionStorage.removeItem('voterCode');
+    sessionStorage.removeItem('activeElection');
     switchView('landing-view');
     loadSchoolElections();
   });
   
   // Results page back home
   document.getElementById('btn-results-home').addEventListener('click', () => {
+    state.voterCode = '';
+    state.activeElection = null;
+    state.resultsElectionId = null;
+    sessionStorage.removeItem('voterCode');
+    sessionStorage.removeItem('activeElection');
+    sessionStorage.removeItem('resultsElectionId');
     switchView('landing-view');
     loadSchoolElections();
   });
@@ -2341,6 +2390,10 @@ function initApp() {
     if (confirm('Are you sure you want to exit the ballot? Your votes will not be cast.')) {
       if (state.countdownInterval) clearInterval(state.countdownInterval);
       state.countdownInterval = null;
+      state.voterCode = '';
+      state.activeElection = null;
+      sessionStorage.removeItem('voterCode');
+      sessionStorage.removeItem('activeElection');
       switchView('landing-view');
       loadSchoolElections();
     }
@@ -2348,6 +2401,7 @@ function initApp() {
 
   document.getElementById('btn-sa-logout').addEventListener('click', () => {
     state.adminUser = null;
+    sessionStorage.clear();
     switchView('gateway-view');
     showToast('Super Admin logged out.', 'info');
   });
@@ -2355,9 +2409,26 @@ function initApp() {
   document.getElementById('btn-admin-logout').addEventListener('click', () => {
     state.adminUser = null;
     state.selectedSchool = '';
+    sessionStorage.clear();
     switchView('gateway-view');
     showToast('School Administrator logged out.', 'info');
   });
+
+  // Mobile Admin Sidebar Toggle
+  const adminMenuToggle = document.getElementById('admin-menu-toggle');
+  const adminMenu = document.querySelector('.admin-menu');
+  if (adminMenuToggle && adminMenu) {
+    adminMenuToggle.addEventListener('click', () => {
+      adminMenu.classList.toggle('active');
+    });
+
+    // Close menu when clicking any menu item
+    adminMenu.querySelectorAll('li').forEach(item => {
+      item.addEventListener('click', () => {
+        adminMenu.classList.remove('active');
+      });
+    });
+  }
 
   document.getElementById('foot-home-link').addEventListener('click', (e) => {
     e.preventDefault();
@@ -2368,6 +2439,93 @@ function initApp() {
     e.preventDefault();
     switchView('admin-gate-view');
   });
+
+  // ==========================================
+  // SESSION REHYDRATION
+  // ==========================================
+  const savedAdminUser = sessionStorage.getItem('adminUser');
+  const savedSelectedSchool = sessionStorage.getItem('selectedSchool');
+  const savedCurrentView = sessionStorage.getItem('currentView');
+  const savedVoterCode = sessionStorage.getItem('voterCode');
+  const savedActiveElection = sessionStorage.getItem('activeElection');
+  const savedResultsElectionId = sessionStorage.getItem('resultsElectionId');
+  const savedAdminTab = sessionStorage.getItem('currentAdminTab');
+  const savedSuperAdminTab = sessionStorage.getItem('currentSuperAdminTab');
+
+  if (savedAdminUser) {
+    try {
+      state.adminUser = JSON.parse(savedAdminUser);
+      if (state.adminUser.isSuperAdmin) {
+        enterSuperAdminPortal(savedSuperAdminTab);
+      } else {
+        state.selectedSchool = state.adminUser.school;
+        enterSchoolAdminDashboard(savedAdminTab);
+      }
+    } catch (e) {
+      console.error('Failed to parse saved admin user session', e);
+      sessionStorage.clear();
+      switchView('gateway-view');
+    }
+  } else if (savedSelectedSchool) {
+    state.selectedSchool = savedSelectedSchool;
+    // Update Portal view titles
+    const titleElem = document.getElementById('school-landing-title');
+    if (titleElem) titleElem.innerText = savedSelectedSchool;
+
+    if (savedCurrentView === 'landing-view') {
+      loadSchoolElections();
+      switchView('landing-view');
+    } else if (savedCurrentView === 'voter-auth-view' && savedActiveElection) {
+      try {
+        state.activeElection = JSON.parse(savedActiveElection);
+        const miniInfo = document.getElementById('auth-election-info');
+        if (miniInfo) {
+          document.getElementById('auth-election-title').innerText = state.activeElection.title;
+          document.getElementById('auth-election-scope').innerText = state.activeElection.scope;
+          miniInfo.style.display = 'block';
+        }
+        loadSchoolElections();
+        switchView('voter-auth-view');
+      } catch (e) {
+        loadSchoolElections();
+        switchView('landing-view');
+      }
+    } else if (savedCurrentView === 'voter-ballot-view' && savedActiveElection && savedVoterCode) {
+      try {
+        state.activeElection = JSON.parse(savedActiveElection);
+        state.voterCode = savedVoterCode;
+        loadBallot();
+        switchView('voter-ballot-view');
+      } catch (e) {
+        loadSchoolElections();
+        switchView('landing-view');
+      }
+    } else if (savedCurrentView === 'voter-waiting-view' && savedActiveElection && savedVoterCode) {
+      try {
+        state.activeElection = JSON.parse(savedActiveElection);
+        state.voterCode = savedVoterCode;
+        loadWaitingScreen();
+      } catch (e) {
+        loadSchoolElections();
+        switchView('landing-view');
+      }
+    } else if (savedCurrentView === 'results-view' && savedResultsElectionId) {
+      loadResults(savedResultsElectionId);
+    } else {
+      loadSchoolElections();
+      switchView('landing-view');
+    }
+  } else {
+    // No logged in admin or selected school
+    if (savedCurrentView === 'admin-gate-view') {
+      switchView('admin-gate-view');
+    } else if (savedCurrentView === 'voter-school-view') {
+      loadSchoolsList();
+      switchView('voter-school-view');
+    } else {
+      switchView('gateway-view');
+    }
+  }
 }
 
 // Start application

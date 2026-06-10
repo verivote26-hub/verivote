@@ -11,7 +11,7 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=17">
+  <link rel="stylesheet" href="style.css?v=18">
 </head>
 <body>
 
@@ -529,8 +529,13 @@
         <!-- Sidebar Navigation -->
         <aside class="admin-sidebar glass">
           <div class="admin-brand">
-            <i class="fa-solid fa-user-shield"></i>
-            <span id="admin-school-label">Admin Panel</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i class="fa-solid fa-user-shield" style="color: var(--color-purple);"></i>
+              <span id="admin-school-label">Admin Panel</span>
+            </div>
+            <button type="button" id="admin-menu-toggle" class="admin-menu-toggle-btn" aria-label="Toggle Menu">
+              <i class="fa-solid fa-bars"></i>
+            </button>
           </div>
           <ul class="admin-menu">
             <li class="active" data-tab="tab-create-election"><i class="fa-solid fa-plus"></i> Create Election</li>
@@ -927,6 +932,6 @@
   <canvas id="confetti-canvas"></canvas>
 
   <!-- Client JavaScript -->
-  <script src="client.js?v=17"></script>
+  <script src="client.js?v=19"></script>
 </body>
 </html>

@@ -1133,13 +1133,33 @@ textarea:focus {
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   padding: 0 15px 20px 15px;
   border-bottom: 1px solid var(--border-glass);
   margin-bottom: 20px;
+  color: #fff;
 }
 
 .admin-brand i {
+  color: var(--color-purple);
+}
+
+/* Hamburger button (hidden on desktop) */
+.admin-menu-toggle-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 4px;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: var(--transition);
+}
+
+.admin-menu-toggle-btn:hover {
   color: var(--color-purple);
 }
 
@@ -1151,10 +1171,32 @@ textarea:focus {
 }
 
 @media(max-width: 850px) {
+  .admin-menu-toggle-btn {
+    display: flex;
+  }
+
+  .admin-brand {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding: 0 10px;
+  }
+
+  .admin-sidebar {
+    padding: 15px;
+  }
+
   .admin-menu {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: none; /* hidden by default on mobile */
+    flex-direction: column;
+    width: 100%;
+    margin-top: 15px;
+    border-top: 1px solid var(--border-glass);
+    padding-top: 15px;
+    gap: 8px;
+  }
+
+  .admin-menu.active {
+    display: flex !important;
   }
 }
 
@@ -1182,12 +1224,6 @@ textarea:focus {
   border-left: 3px solid var(--color-purple);
 }
 
-@media(max-width: 850px) {
-  .admin-menu li.active {
-    border-left: none;
-    border-bottom: 3px solid var(--color-purple);
-  }
-}
 
 .admin-menu li.menu-danger.active {
   background: rgba(244, 63, 94, 0.12);

@@ -351,7 +351,7 @@ app.post('/api/auth/admin/signup', async (req, res) => {
     }
 
     // Check if admin name already exists for this school
-    const existingAdmin = await db.get('SELECT id FROM school_admins WHERE name = ? AND school = ?', [cleanName, cleanSchool]);
+    const existingAdmin = await db.get('SELECT id FROM school_admins WHERE name = ? COLLATE NOCASE AND school = ? COLLATE NOCASE', [cleanName, cleanSchool]);
     if (existingAdmin) {
       return res.status(400).json({ error: `An administrator named '${cleanName}' is already registered for '${cleanSchool}'.` });
     }
@@ -398,7 +398,7 @@ app.post('/api/auth/admin/login', async (req, res) => {
 
   try {
     const admin = await db.get(
-      'SELECT * FROM school_admins WHERE name = ? AND password = ?',
+      'SELECT * FROM school_admins WHERE name = ? COLLATE NOCASE AND password = ?',
       [cleanName, db.hashPassword(cleanPassword)]
     );
 

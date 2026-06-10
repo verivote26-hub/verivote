@@ -297,6 +297,35 @@ async function initDatabase() {
     await run("INSERT OR IGNORE INTO registered_schools (name, created_at) VALUES ('Veritas University', ?)", [nowTime]);
     await run("INSERT OR IGNORE INTO registered_schools (name, created_at) VALUES ('OAU', ?)", [nowTime]);
 
+    // Seed OAU admins if they don't exist
+    const oauAdmins = [
+      { name: 'EMI SWAN', school: 'OAU', password: 'admin', code: 'VV-INV-JT2S8' },
+      { name: 'PMARX', school: 'OAU', password: '3321', code: 'VV-INV-BDFZH' },
+      { name: 'IFMSA adm', school: 'OAU', password: '1234', code: 'VV-INV-BKMLC' }
+    ];
+
+    for (const admin of oauAdmins) {
+      const existing = await get("SELECT name FROM school_admins WHERE name = ? COLLATE NOCASE", [admin.name]);
+      if (!existing) {
+        const now = Date.now();
+        // Seed code
+        await run(
+          "INSERT OR IGNORE INTO admin_codes (code, used, used_by, used_for_school, created_at) VALUES (?, ?, ?, ?, ?)",
+          [admin.code, 1, admin.name, admin.school, now]
+        );
+        // Seed admin
+        await run(
+          "INSERT OR IGNORE INTO school_admins (name, school, password, invite_code, created_at) VALUES (?, ?, ?, ?, ?)",
+          [admin.name, admin.school, hashPassword(admin.password), admin.code, now]
+        );
+        // Seed default positions for OAU
+        await run("INSERT OR IGNORE INTO positions (name, school, created_by) VALUES ('President', 'OAU', ?)", [admin.name]);
+        await run("INSERT OR IGNORE INTO positions (name, school, created_by) VALUES ('Secretary', 'OAU', ?)", [admin.name]);
+        
+        console.log(`Seeded administrator: ${admin.name} for school: ${admin.school}`);
+      }
+    }
+
     console.log('Database tables initialized successfully.');
   } catch (error) {
     console.error('Failed to initialize database tables:', error);
